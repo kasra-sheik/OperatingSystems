@@ -156,8 +156,8 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 						invalidOperatorCount += 1;
 					}
 
-					printf("PID %d: ERROR: unknown \"%s\" operator; exiting\n", getpid(), invalidOperator);
-					return;
+					fprintf(stderr,"PID %d: ERROR: unknown \"%s\" operator; exiting\n", getpid(), invalidOperator);
+					exit(EXIT_FAILURE);
 				}
 				printf("PID %d: Starting \"%c\" operation\n", getpid(), currentOperator);
 				fflush(stdout);
@@ -270,8 +270,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
      	}
 
      	if(digitCount == 1) {
-     		printf("PID %d: ERROR: not enough operands; exiting\n", getpid());
-     		fflush(stdout);
+     		fprintf(stderr,"PID %d: ERROR: not enough operands; exiting\n", getpid());
      		return;
      	}
 
@@ -322,13 +321,11 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 		// }
 
 		if(digitCount == 1){
-			printf("PID %d: ERROR: not enough operands; exiting\n", getpid());
-     		fflush(stdout);
-     		return;
+			fprintf(stderr,"PID %d: ERROR: not enough operands; exiting\n", getpid());
+			return;
 		}
 		if(containsDivideByZero(digits, digitCount, currentOperator) == true){
-			printf("PID %d: division by zero is not allowed; exiting\n", getpid());
-			fflush(stdout);
+			fprintf(stderr,"PID %d: division by zero is not allowed; exiting\n", getpid());
 			return;
 		}
 
@@ -343,8 +340,8 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 int main(int argc, char ** argv) {
 
 	if(argc < 2){
-		perror("ERROR: Invalid arguments USAGE: ./a.out <input-file>");
-    	return EXIT_FAILURE;
+		fprintf(stderr,"ERROR: Invalid arguments\nUSAGE: ./a.out <input-file>\n");
+		return EXIT_FAILURE;
 	}
 
 
@@ -369,5 +366,5 @@ int main(int argc, char ** argv) {
 
 
 
-	return 0;
+	return EXIT_SUCCESS;
 }
