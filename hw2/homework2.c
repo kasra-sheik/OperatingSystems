@@ -84,6 +84,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 	printf("PID %d: My expression is \"%s\"\n", getpid(), expr);
 	fflush(stdout);
 
+	char validOperators [4] = {'*', '-', '+', '/'};
 	char currentOperator;
 
 	int * digits; 
@@ -130,6 +131,26 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 		if(expr[i] == '('){
 			if(i == 0){
 				currentOperator = expr[i + 1];
+				bool validOperator = false;
+				for(int k = 0; k < 4; k++){
+					if(currentOperator == validOperators[k]){
+						validOperator = true;
+					}
+				}
+
+				if(validOperator == false){
+					char invalidOperator [32];
+					int invalidOperatorCount = 0;
+					i += 1;
+					while(expr[i] != ' '){
+						invalidOperator[invalidOperatorCount] = expr[i];
+						i += 1;
+						invalidOperatorCount += 1;
+					}
+
+					printf("PID %d: ERROR: unknown \"%s\" operator; exiting\n", getpid(), invalidOperator);
+					return;
+				}
 				printf("PID %d: Starting \"%c\" operation\n", getpid(), currentOperator);
 				fflush(stdout);
 				i += 1;
@@ -240,6 +261,12 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
      		}
      	}
 
+     	if(digitCount == 1) {
+     		printf("PID %d: ERROR: not enough operands; exiting\n", getpid());
+     		fflush(stdout);
+     		return;
+     	}
+
      	int childOperandCalculation = calculate(digits, digitCount, currentOperator);
 		char childCalculationString[32];
 		sprintf(childCalculationString, "%d", childOperandCalculation);
@@ -286,6 +313,11 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 		// 	printf("digit[%d]: %d\n",i, digits[i]);
 		// }
 
+		if(digitCount == 1){
+			printf("PID %d: ERROR: not enough operands; exiting\n", getpid());
+     		fflush(stdout);
+     		return;
+		}
 
 		printf("PID %d: Processed \"%s\"; final answer is \"%d\"\n", getpid(), expr, calculate(digits, digitCount, currentOperator));
 		fflush(stdout);
