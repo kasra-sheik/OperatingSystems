@@ -64,7 +64,16 @@ bool isNegative(int i, char * expr) {
 	}
 	return false;
 }
-
+bool containsDivideByZero(int * operands, int operandCount, char operation){
+	if(operation == '/'){
+		for(int i = 1; i < operandCount; i++){
+			if(operands[i] == 0){
+				return true;
+			}
+		}
+	}
+	return false;
+}
 char* getSubExpression(int i, char * expr) {
 	char subExpression[128];
 	int subExpressionCount = 0;
@@ -79,7 +88,6 @@ char* getSubExpression(int i, char * expr) {
 	subExp = subExpression;
 	return subExp;
 }
-
 void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 	printf("PID %d: My expression is \"%s\"\n", getpid(), expr);
 	fflush(stdout);
@@ -317,6 +325,11 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 			printf("PID %d: ERROR: not enough operands; exiting\n", getpid());
      		fflush(stdout);
      		return;
+		}
+		if(containsDivideByZero(digits, digitCount, currentOperator) == true){
+			printf("PID %d: division by zero is not allowed; exiting\n", getpid());
+			fflush(stdout);
+			return;
 		}
 
 		printf("PID %d: Processed \"%s\"; final answer is \"%d\"\n", getpid(), expr, calculate(digits, digitCount, currentOperator));
