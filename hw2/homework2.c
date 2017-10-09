@@ -22,6 +22,7 @@ int calculate(int * operands, int operandCount, char operation) {
 	int calculation = 0;
 	int indexToStart = 0;
 
+
 	if(operation == '*'){
 		calculation = 1;
 	}
@@ -97,6 +98,33 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 	//initialize file descriptor..once 
 
 	while(i < strlen(expr)){
+		if(childProcessesCount > 0){
+			//wait for children operands process them and add them to digits before reading anything else in 
+			if(childProcessesCount > 0){
+				for(int j = 0; j <= childProcessesCount; j++){
+					int child_pid = childProcesses[j];
+					int status;
+					waitpid(child_pid, &status, 0);
+					//printf("we are here..waiting for pid: %d\n", child_pid);
+
+					//read from this child..
+
+					char child_buffer[80];
+				    int bytes_read = read(p[0],child_buffer,32);
+				    child_buffer[bytes_read] = '\0';
+				   	int currentOperand = atoi(child_buffer);
+
+				   	//printf("currentOperand read: %d\n",currentOperand);
+				   	childProcesses[j] = 0;
+				   	childProcessesCount -= 1;
+
+				   	digits[digitCount] = currentOperand;
+				   	digitCount += 1;
+
+
+				}
+			}
+		}
 
 		if(expr[i] == '('){
 			if(i == 0){
@@ -164,26 +192,6 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 				return;
 			}
 			else {
-				if(childProcessesCount > 0){
-					for(int j = 0; j < childProcessesCount; j++){
-						int child_pid = childProcesses[j];
-						int status;
-						waitpid(child_pid, &status, 0);
-						printf("we are here..waiting for pid: %d\n", child_pid);
-
-						//read from this child..
-
-						char child_buffer[80];
-					    int bytes_read = read(p[0],child_buffer,32);
-					    child_buffer[bytes_read] = '\0';
-					   	int currentOperand = atoi(child_buffer);
-
-					   	printf("currentOperand read: %d\n",currentOperand);
-
-
-
-					}
-				}
 
 				int status;
 				waitpid(pid, &status, 0);
@@ -207,7 +215,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 		i += 1;
 	}
 
-	// //child sending entire operand calculation up to parent.
+	//child sending entire operand calculation up to parent.
 	if(parent_pid > 0){
 		if(childProcessesCount > 0){
      		for(int i = 0; i < childProcessesCount; i++) {
@@ -248,7 +256,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 	if(parent_pid == 0){
 		for(int i = 0; i < childProcessesCount; i++){
 
-			printf("Waiting for pid: %d\n",childProcesses[i]);
+			// printf("Waiting for pid: %d\n",childProcesses[i]);
 			int pid = childProcesses[i];
 			int status;
 			waitpid(pid, &status, 0);
@@ -266,15 +274,15 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 			digits[digitCount] = childCalculation;
 			digitCount += 1;
 
-			printf("I am the parent and I read %d bytes from pid %d\n", bytes_read, pid);
+			//printf("I am the parent and I read %d bytes from pid %d\n", bytes_read, pid);
 
 
 		}
 
-		printf("printing parents digits...\n");
-		for(int i = 0; i < digitCount; i++){
-			printf("digit[%d]: %d\n",i, digits[i]);
-		}
+		// printf("printing parents digits...\n");
+		// for(int i = 0; i < digitCount; i++){
+		// 	printf("digit[%d]: %d\n",i, digits[i]);
+		// }
 
 
 		printf("PID %d: Processed \"%s\"; final answer is \"%d\"\n", getpid(), expr, calculate(digits, digitCount, currentOperator));
