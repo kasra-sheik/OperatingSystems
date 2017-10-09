@@ -82,6 +82,7 @@ char* getSubExpression(int i, char * expr) {
 
 void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 	printf("PID %d: My expression is \"%s\"\n", getpid(), expr);
+	fflush(stdout);
 
 	char currentOperator;
 
@@ -130,6 +131,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 			if(i == 0){
 				currentOperator = expr[i + 1];
 				printf("PID %d: Starting \"%c\" operation\n", getpid(), currentOperator);
+				fflush(stdout);
 				i += 1;
 				continue;
 			}
@@ -188,7 +190,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 
 			    write( p[1], currentNumString, strlen(currentNumString) + 1);
 			   	printf("PID %d: Sending \"%s\" on pipe to parent\n", getpid(), currentNumString);
-
+				fflush(stdout);
 				return;
 			}
 			else {
@@ -249,7 +251,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 	    write(writePipe, childCalculationString, strlen(childCalculationString) + 1);
 
 		printf("PID %d: Processed \"%s\"; sending \"%s\" on pipe to parent\n", getpid(), expr, childCalculationString);
-		
+		fflush(stdout);
 		return;
 
 	}
@@ -286,7 +288,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 
 
 		printf("PID %d: Processed \"%s\"; final answer is \"%d\"\n", getpid(), expr, calculate(digits, digitCount, currentOperator));
-
+		fflush(stdout);
 	}
 
 	return;
@@ -296,7 +298,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 int main(int argc, char ** argv) {
 
 	if(argc < 2){
-		perror("ERROR: Invalid arguments\nUSAGE: ./a.out <input-file>");
+		perror("ERROR: Invalid arguments USAGE: ./a.out <input-file>");
     	return EXIT_FAILURE;
 	}
 
