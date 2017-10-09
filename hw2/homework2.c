@@ -156,7 +156,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 						invalidOperatorCount += 1;
 					}
 
-					fprintf(stderr,"PID %d: ERROR: unknown \"%s\" operator; exiting\n", getpid(), invalidOperator);
+					printf("PID %d: ERROR: unknown \"%s\" operator; exiting\n", getpid(), invalidOperator);
 					exit(EXIT_FAILURE);
 				}
 				printf("PID %d: Starting \"%c\" operation\n", getpid(), currentOperator);
@@ -270,8 +270,9 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
      	}
 
      	if(digitCount == 1) {
-     		fprintf(stderr,"PID %d: ERROR: not enough operands; exiting\n", getpid());
-     		return;
+     		printf("PID %d: ERROR: not enough operands; exiting\n", getpid());
+     		exit(EXIT_FAILURE);
+
      	}
 
      	int childOperandCalculation = calculate(digits, digitCount, currentOperator);
@@ -321,12 +322,13 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 		// }
 
 		if(digitCount == 1){
-			fprintf(stderr,"PID %d: ERROR: not enough operands; exiting\n", getpid());
-			return;
+			printf("PID %d: ERROR: not enough operands; exiting\n", getpid());
+			exit(EXIT_FAILURE);
+
 		}
 		if(containsDivideByZero(digits, digitCount, currentOperator) == true){
-			fprintf(stderr,"PID %d: division by zero is not allowed; exiting\n", getpid());
-			return;
+			printf("PID %d: division by zero is not allowed; exiting\n", getpid());
+			exit(EXIT_FAILURE);
 		}
 
 		printf("PID %d: Processed \"%s\"; final answer is \"%d\"\n", getpid(), expr, calculate(digits, digitCount, currentOperator));
