@@ -115,7 +115,23 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 					int child_pid = childProcesses[j];
 					int status;
 					waitpid(child_pid, &status, 0);
-					//printf("we are here..waiting for pid: %d\n", child_pid);
+					if(WIFEXITED(status)){
+						if(parent_pid == 0){
+							printf("PID %d: child terminated with nonzero exit status 1 [child pid %d]\n", getpid(), child_pid);
+
+						}
+
+						exit(EXIT_FAILURE);
+					}
+					
+					 // if ( WIFSIGNALED( status ) )  /* child process was terminated due to */
+				  //   {
+				  //     if(parent_pid == 0){
+				  //     	printf("I AM THE PARENT IT WAS MY CHILD %d WHO DIED\n", child_pid);
+				  //     }
+				  //                                   /* a signal (e.g., segfault, etc.)     */
+				  //     //exit(EXIT_FAILURE);
+				  //   }
 
 					//read from this child..
 
@@ -124,7 +140,8 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 				    child_buffer[bytes_read] = '\0';
 				   	int currentOperand = atoi(child_buffer);
 
-				   	//printf("currentOperand read: %d\n",currentOperand);
+
+				   	printf("currentOperand read: %d\n",currentOperand);
 				   	childProcesses[j] = 0;
 				   	childProcessesCount -= 1;
 
@@ -166,7 +183,17 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 			}
 			else {
 				char subExpression [128];
-				strcpy(subExpression,getSubExpression(i, expr));
+				int subExpressionCount = 0;
+				int subExpressionIndex = i;
+				while(expr[subExpressionIndex] != ')'){
+					subExpression[subExpressionCount] = expr[subExpressionIndex];
+					subExpressionIndex += 1;
+					subExpressionCount += 1;
+				}
+				subExpression[subExpressionCount] = ')';
+				subExpression[subExpressionCount + 1] = '\0';
+
+				//strcpy(subExpression,getSubExpression(i, expr));
 				
 
 				pipe( p );
@@ -208,7 +235,8 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 
 			if(currentOperator == '/' && digitCount > 0 && strcmp(currentNumString, "0") == 0){
 				printf("PID %d: ERROR: division by zero is not allowed; exiting\n", getpid());
-				exit(EXIT_FAILURE);
+				fflush(stdout);
+				//exit(EXIT_FAILURE);
 			}
 			pipe( p );
 			pid_t pid; 
@@ -257,7 +285,6 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
      			int pid = childProcesses[i];
      			int status;
      			waitpid(pid, &status, 0 );
-     			//wait(NULL!);
 
      			close( p[1] );  
     			p[1] = -1;
@@ -275,9 +302,15 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 
      	if(digitCount == 1) {
      		printf("PID %d: ERROR: not enough operands; exiting\n", getpid());
+     		fflush(stdout);
      		exit(EXIT_FAILURE);
 
      	}
+
+     	if(containsDivideByZero(digits, digitCount, currentOperator) == true){
+			printf("PID %d: ERROR: division by zero is not allowed; exiting\n", getpid());
+			exit(EXIT_FAILURE);
+		}
 
      	int childOperandCalculation = calculate(digits, digitCount, currentOperator);
 		char childCalculationString[32];
@@ -288,7 +321,6 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
      	pipe(p); 
 
 	    write(writePipe, childCalculationString, strlen(childCalculationString) + 1);
-
 		printf("PID %d: Processed \"%s\"; sending \"%s\" on pipe to parent\n", getpid(), expr, childCalculationString);
 		fflush(stdout);
 		return;
@@ -301,6 +333,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 			int pid = childProcesses[i];
 			int status;
 			waitpid(pid, &status, 0);
+
 
 			close( p[1] );  
     		p[1] = -1;
@@ -331,10 +364,11 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 
 		}
 		if(containsDivideByZero(digits, digitCount, currentOperator) == true){
-			printf("PID %d: division by zero is not allowed; exiting\n", getpid());
+			printf("PID %d: ERROR: division by zero is not allowed; exiting\n", getpid());
 			exit(EXIT_FAILURE);
 		}
 
+		printf("%s\n", expr);
 		printf("PID %d: Processed \"%s\"; final answer is \"%d\"\n", getpid(), expr, calculate(digits, digitCount, currentOperator));
 		fflush(stdout);
 	}
