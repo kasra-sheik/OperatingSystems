@@ -119,26 +119,19 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 
 					if(WIFEXITED(status)){
 						int child_return_value = WEXITSTATUS( status );
-						if(child_return_value == 1){
+						if(child_return_value != 0){
 							printf("PID %d: child terminated with nonzero exit status %d [child pid %d]\n", getpid(), child_return_value, child_pid);
 							fflush(stdout);
 							exit(EXIT_FAILURE);
 
 						}
-						// if(parent_pid == 0){
-						// 	printf("PID %d: child terminated with nonzero exit status 1 [child pid %d]\n", getpid(), child_pid);
-
-						// }
+						
 					}
-					
-					 // if ( WIFSIGNALED( status ) )  /* child process was terminated due to */
-				  //   {
-				  //     if(parent_pid == 0){
-				  //     	printf("I AM THE PARENT IT WAS MY CHILD %d WHO DIED\n", child_pid);
-				  //     }
-				  //                                   /* a signal (e.g., segfault, etc.)     */
-				  //     //exit(EXIT_FAILURE);
-				  //   }
+					else if(WIFSIGNALED(status)){
+						printf("PID %d: child terminated abnormally [child pid %d]\n", getpid(), child_pid);
+						fflush(stdout);
+					}
+
 
 					//read from this child..
 
