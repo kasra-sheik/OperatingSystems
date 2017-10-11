@@ -115,13 +115,20 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 					int child_pid = childProcesses[j];
 					int status;
 					waitpid(child_pid, &status, 0);
+
+
 					if(WIFEXITED(status)){
-						if(parent_pid == 0){
-							printf("PID %d: child terminated with nonzero exit status 1 [child pid %d]\n", getpid(), child_pid);
+						int child_return_value = WEXITSTATUS( status );
+						if(child_return_value == 1){
+							printf("PID %d: child terminated with nonzero exit status %d [child pid %d]\n", getpid(), child_return_value, child_pid);
+							fflush(stdout);
+							exit(EXIT_FAILURE);
 
 						}
+						// if(parent_pid == 0){
+						// 	printf("PID %d: child terminated with nonzero exit status 1 [child pid %d]\n", getpid(), child_pid);
 
-						exit(EXIT_FAILURE);
+						// }
 					}
 					
 					 // if ( WIFSIGNALED( status ) )  /* child process was terminated due to */
@@ -141,7 +148,6 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 				   	int currentOperand = atoi(child_buffer);
 
 
-				   	printf("currentOperand read: %d\n",currentOperand);
 				   	childProcesses[j] = 0;
 				   	childProcessesCount -= 1;
 
@@ -236,7 +242,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 			if(currentOperator == '/' && digitCount > 0 && strcmp(currentNumString, "0") == 0){
 				printf("PID %d: ERROR: division by zero is not allowed; exiting\n", getpid());
 				fflush(stdout);
-				//exit(EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			pipe( p );
 			pid_t pid; 
@@ -334,7 +340,6 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 			int status;
 			waitpid(pid, &status, 0);
 
-
 			close( p[1] );  
     		p[1] = -1;
 
@@ -368,7 +373,6 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 			exit(EXIT_FAILURE);
 		}
 
-		printf("%s\n", expr);
 		printf("PID %d: Processed \"%s\"; final answer is \"%d\"\n", getpid(), expr, calculate(digits, digitCount, currentOperator));
 		fflush(stdout);
 	}
