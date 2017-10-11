@@ -207,7 +207,7 @@ void process_expr(char * expr, int i, int parent_pid, int writePipe) {
 			}
 
 			if(currentOperator == '/' && digitCount > 0 && strcmp(currentNumString, "0") == 0){
-				printf("PID %d: division by zero is not allowed; exiting\n", getpid());
+				printf("PID %d: ERROR: division by zero is not allowed; exiting\n", getpid());
 				exit(EXIT_FAILURE);
 			}
 			pipe( p );
